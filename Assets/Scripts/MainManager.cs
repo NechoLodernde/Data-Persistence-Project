@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
@@ -10,8 +11,12 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
-    public Text ScoreText;
+    public TextMeshProUGUI ScoreText;
+    public TextMeshProUGUI BestScoreText;
     public GameObject GameOverText;
+    public BestPicker BestPicker;
+    private string bestName;
+    private string bestScore;
     
     private bool m_Started = false;
     private int m_Points;
@@ -22,9 +27,17 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        string tempName = MenuManager.Instance.playerName;
+        int tempScore = MenuManager.Instance.bestScore;
+
+        MenuManager.Instance.LoadProfile();
+        Debug.Log("Text for best score: " + MenuManager.Instance.bestScore);
+        BestPicker.SelectProfile(MenuManager.Instance.playerName, MenuManager.Instance.bestScore);
+        MenuManager.Instance.playerName = tempName;
+        MenuManager.Instance.bestScore = tempScore;
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
+        Debug.Log(MenuManager.Instance.playerName);
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
         {
@@ -65,12 +78,26 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        MenuManager.Instance.bestScore += point;
+        ScoreText.text = $"Score : {MenuManager.Instance.playerName} : {m_Points}";
     }
 
     public void GameOver()
     {
-        m_GameOver = true;
-        GameOverText.SetActive(true);
+        Debug.Log("Current score: " + MenuManager.Instance.bestScore);
+        Debug.Log("High score: " + MenuManager.Instance.bestScore);
+        if (MenuManager.Instance.bestScore >= BestPicker.bestScore)
+        {
+            MenuManager.Instance.SaveProfile();
+            MenuManager.Instance.bestScore = 0;
+            m_GameOver = true;
+            GameOverText.SetActive(true);
+        }
+        else
+        {
+            MenuManager.Instance.bestScore = 0;
+            m_GameOver = true;
+            GameOverText.SetActive(true);
+        }
     }
 }
